@@ -1,5 +1,88 @@
 <!doctype html>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=service-blueprint.html">
-<link rel="canonical" href="service-blueprint.html">
-<title>Youngmatch Blueprint</title>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Youngmatch — Service Blueprint</title>
+  <!-- No-JS fallback: probeer te redirecten -->
+  <meta http-equiv="refresh" content="2; url=service-blueprint.html">
+  <style>
+    :root{--ink:#0f172a;--muted:#64748b;--line:#e5e7eb;--accent:#0ea5e9;}
+    html,body{margin:0;font:16px/1.6 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;color:var(--ink);background:#fff}
+    .wrap{max-width:880px;margin:48px auto;padding:0 20px}
+    h1{margin:0 0 12px 0;font-weight:600}
+    .card{border:1px solid var(--line);border-radius:12px;padding:18px}
+    .muted{color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    a.btn,button.btn{display:inline-block;border:1px solid var(--line);padding:10px 12px;border-radius:10px;background:#f8fafc;color:#0b4d63;text-decoration:none;cursor:pointer}
+    code{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+    .ok{color:#166534}
+    .err{color:#991b1b}
+    .hint{font-size:14px;color:var(--muted);margin-top:10px}
+    .small{font-size:14px}
+    .list{margin:10px 0 0 18px}
+    .list li{margin:4px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Doorsturen naar de Service Blueprint…</h1>
+    <div class="card">
+      <p class="muted" id="status">We controleren of <code>service-blueprint.html</code> beschikbaar is.</p>
+      <div class="actions">
+        <a id="btnSame" class="btn" href="service-blueprint.html">Open blueprint (zelfde map)</a>
+        <a id="btnDocs" class="btn" href="docs/service-blueprint.html">Open blueprint (in <code>/docs</code>)</a>
+        <button id="retry" class="btn" type="button">Opnieuw controleren</button>
+      </div>
+      <div class="hint small">
+        <p><strong>Tip:</strong> Staat GitHub Pages op <em>root</em>? Zet <code>index.html</code> en <code>service-blueprint.html</code> dan in de root. Staat Pages op <em>/docs</em>? Zet ze dan beide in <code>/docs</code>.</p>
+        <ul class="list">
+          <li>Project-site URL: <code>https://&lt;username&gt;.github.io/&lt;repo&gt;/</code></li>
+          <li>User-site URL: <code>https://&lt;username&gt;.github.io/</code></li>
+          <li>Wacht ~1 minuut na je commit tot Pages is gedeployed (check “Actions”).</li>
+          <li>Hard refresh bij caching: <code>Ctrl/Cmd+Shift+R</code> of voeg <code>?v=1</code> toe.</li>
+        </ul>
+      </div>
+    </div>
+
+    <noscript>
+      <p class="err">JavaScript staat uit. Je wordt binnen enkele seconden doorgestuurd, of klik boven op een van de knoppen.</p>
+    </noscript>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const btnSame = document.getElementById('btnSame');
+    const btnDocs = document.getElementById('btnDocs');
+    const retry = document.getElementById('retry');
+
+    async function exists(url){
+      try{
+        const res = await fetch(url, { method:'HEAD', cache:'no-store' });
+        return res.ok;
+      }catch(_){ return false; }
+    }
+
+    async function tryRedirect(){
+      statusEl.textContent = 'We controleren of service-blueprint.html beschikbaar is…';
+      // Probeer in dezelfde map
+      if(await exists('service-blueprint.html')){
+        statusEl.innerHTML = '<span class="ok">Gevonden.</span> Je wordt doorgestuurd.';
+        window.location.assign('service-blueprint.html');
+        return;
+      }
+      // Probeer in /docs (handig als index.html in root staat)
+      if(await exists('docs/service-blueprint.html')){
+        statusEl.innerHTML = '<span class="ok">Gevonden in /docs.</span> Je wordt doorgestuurd.';
+        window.location.assign('docs/service-blueprint.html');
+        return;
+      }
+      statusEl.innerHTML = '<span class="err">Blueprint niet gevonden.</span> Controleer of <code>service-blueprint.html</code> in dezelfde map (of <code>/docs</code>) staat en dat Pages de juiste map publiceert.';
+    }
+
+    retry.addEventListener('click', tryRedirect);
+    // Automatisch checken bij laden
+    tryRedirect();
+  </script>
+</body>
+</html>
