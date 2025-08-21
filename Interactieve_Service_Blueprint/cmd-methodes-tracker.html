@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CMD-methodes per fase – Youngmatch</title>
+  <style>
+    :root{
+      --bg:#fafafa; --card:#ffffff; --ink:#0f172a; --muted:#475569;
+      --line:#e2e8f0; --accent:#0ea5e9; --accent-ink:#075985;
+      --good:#16a34a; --warn:#eab308; --todo:#64748b; --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
+    header{padding:28px 20px 10px; max-width:1200px; margin:0 auto}
+    h1{margin:0 0 6px 0; font-size:28px; font-weight:600}
+    p.lead{margin:0 0 16px 0; color:var(--muted)}
+    .toolbar{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    select,button,input[type="search"]{padding:10px 12px; border:1px solid var(--line); background:var(--card); border-radius:10px; color:var(--ink)}
+    button{cursor:pointer}
+    main{max-width:1200px; margin:16px auto 80px; padding:0 20px}
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+    .card{grid-column:span 12; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px}
+    @media(min-width:960px){ .card{grid-column:span 6} }
+    .phase{font-size:13px; color:var(--accent-ink); background:#e0f2fe; padding:4px 8px; border-radius:8px; display:inline-block; margin-bottom:8px}
+    .title{font-size:18px; margin:0 0 6px 0; font-weight:600}
+    .meta{display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 6px}
+    .chip{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted)}
+    .chip.good{color:#065f46; border-color:#bbf7d0; background:#ecfdf5}
+    .chip.warn{color:#7c5806; border-color:#fde68a; background:#fffbeb}
+    .chip.todo{color:#334155; border-color:#cbd5e1; background:#f8fafc}
+    details{border-top:1px dashed var(--line); padding-top:10px; margin-top:10px}
+    summary{cursor:pointer; list-style:none}
+    summary::-webkit-details-marker{display:none}
+    .row{display:grid; grid-template-columns:150px 1fr; gap:12px; margin:6px 0}
+    .row b{font-weight:600}
+    .btn{display:inline-block; padding:8px 10px; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:var(--accent-ink); background:#f0f9ff}
+    .is-disabled{pointer-events:none; opacity:.55}
+    .imgwrap{margin-top:10px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff}
+    .imgwrap img{display:block; width:100%; height:auto}
+    footer{max-width:1200px; margin:24px auto 40px; padding:0 20px; color:var(--muted)}
+    @media print{
+      header,.toolbar{display:none}
+      .card{break-inside:avoid; border:1px solid #ddd}
+      body{background:#fff}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CMD-methodes per fase</h1>
+    <p class="lead">Overzicht van gebruikte methodes binnen het design thinking proces voor Youngmatch. Per methode staan doel, input, uitkomst en afbeeldingen.</p>
+    <div class="toolbar">
+      <select id="phaseFilter">
+        <option value="all">Toon alle fases</option>
+        <option value="Empathize">Empathize</option>
+        <option value="Define">Define</option>
+        <option value="Ideate">Ideate</option>
+        <option value="Prototype">Prototype</option>
+        <option value="Test">Test</option>
+      </select>
+      <input id="search" type="search" placeholder="Zoek op methode of sleutelwoord" />
+      <button id="printBtn">Print of exporteer</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="cards" class="grid">
+
+      <!-- EMPATHIZE -->
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Stakeholder map</h2>
+        <div class="meta">
+          <span class="chip good">gereed</span>
+          <span class="chip">bron: intake, sessie Lisette</span>
+        </div>
+        <p>Overzicht van betrokkenen, belangen en invloed op het opvolgproces. Basis voor scope en communicatie.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Doel</b><div>Rollen en belangen ordenen en bepalen wanneer en hoe we iedereen betrekken.</div></div>
+          <div class="row"><b>Input</b><div>Intake, interne documenten, overleg met Lisette.</div></div>
+          <div class="row"><b>Uitkomst</b><div>Visual met uitvoerders, beslissers en externen.</div></div>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-stakeholder-map">Toon visual</button></div></div>
+          <div id="img-stakeholder-map" class="imgwrap" hidden>
+            <img src="Stakeholders.png" alt="Stakeholder overzicht">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Stakeholder invloed-belang</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Indeling van stakeholders op invloed en belang. Bepaalt frequentie van afstemming en betrokkenheid.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Doel</b><div>Betrokkenheidsstrategie plannen per quadrant (sleutelfiguren, beïnvloeder, geïnteresseerde, toeschouwer).</div></div>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-stakeholder-matrix">Toon visual</button></div></div>
+          <div id="img-stakeholder-matrix" class="imgwrap" hidden>
+            <img src="Stakeholders_Matrix.png" alt="Invloed-belang matrix">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Empathy map – MKB-eigenaar</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Perspectief van de eigenaar met personeelstekort: wat ziet, hoort, denkt, zegt en doet hij.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-em-mkb">Toon visual</button></div></div>
+          <div id="img-em-mkb" class="imgwrap" hidden>
+            <img src="Empathy_Map_MKBeigenaar.png" alt="Empathy map MKB-eigenaar">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Empathy map – HR-manager</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Behoeften en drempels van de HR-manager die zoekt naar personeel en draagvlak.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-em-hr">Toon visual</button></div></div>
+          <div id="img-em-hr" class="imgwrap" hidden>
+            <img src="Empathy_Map_HRmanager.png" alt="Empathy map HR-manager">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Empathy map – Youngmatch</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Interne blik: wat ziet, hoort en ervaart Youngmatch in de opvolging.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-em-ym">Toon visual</button></div></div>
+          <div id="img-em-ym" class="imgwrap" hidden>
+            <img src="Empathy_Map_Youngmatch.png" alt="Empathy map Youngmatch">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Customer journey – huidige situatie</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Route van onbekend naar ambassadeur met knelpunten per fase.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-cj-huidig">Toon visual</button></div></div>
+          <div id="img-cj-huidig" class="imgwrap" hidden>
+            <img src="CustomerJourney_HS.png" alt="Customer journey huidige situatie">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Empathize">
+        <div class="phase">Empathize</div>
+        <h2 class="title">Customer journey – nieuwe situatie</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Route met blueprint-interventies en vertrouwenstriggers.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-cj-nieuw">Toon visual</button></div></div>
+          <div id="img-cj-nieuw" class="imgwrap" hidden>
+            <img src="CustomerJourney_NS.png" alt="Customer journey nieuwe situatie">
+          </div>
+        </details>
+      </article>
+
+      <!-- DEFINE -->
+      <article class="card" data-phase="Define">
+        <div class="phase">Define</div>
+        <h2 class="title">Affinity mapping</h2>
+        <div class="meta"><span class="chip good">gereed</span><span class="chip">thema’s: timing, bewijs, kanaal, proces</span></div>
+        <p>Losse bevindingen clusteren tot thema’s die de ontwerpvraag aanscherpen.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Doel</b><div>Focus bepalen en prioriteiten kiezen op basis van patronen.</div></div>
+          <div class="row"><b>Afbeeldingen</b>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" type="button" data-toggle="#img-aff-1">Brainstorm</button>
+              <button class="btn" type="button" data-toggle="#img-aff-2">Groeperen</button>
+              <button class="btn" type="button" data-toggle="#img-aff-3">Thema’s</button>
+            </div>
+          </div>
+          <div id="img-aff-1" class="imgwrap" hidden>
+            <img src="AffinityMapping_1.png" alt="Affinity mapping – brainstorm">
+          </div>
+          <div id="img-aff-2" class="imgwrap" hidden>
+            <img src="AffinityMapping_2.png" alt="Affinity mapping – groeperen">
+          </div>
+          <div id="img-aff-3" class="imgwrap" hidden>
+            <img src="AffinityMapping_3.png" alt="Affinity mapping – thema’s">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Define">
+        <div class="phase">Define</div>
+        <h2 class="title">Assumption mapping</h2>
+        <div class="meta"><span class="chip good">gereed</span><span class="chip">vervangt: impact-effort</span></div>
+        <p>Aannames plotten op zekerheid en impact om testprioriteiten te bepalen.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-assump">Toon visual</button></div></div>
+          <div id="img-assump" class="imgwrap" hidden>
+            <img src="AssumptionMapping.png" alt="Assumption mapping matrix">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Define">
+        <div class="phase">Define</div>
+        <h2 class="title">How might we</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Kansen formuleren zonder meteen een oplossing te kiezen.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-hmw">Toon visual</button></div></div>
+          <div id="img-hmw" class="imgwrap" hidden>
+            <img src="HowMightWe.png" alt="How Might We – vier thema’s">
+          </div>
+        </details>
+      </article>
+
+      <!-- IDEATE -->
+      <article class="card" data-phase="Ideate">
+        <div class="phase">Ideate</div>
+        <h2 class="title">Reverse brainstorming</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Eerst bedenken hoe we het probleem erger maken; daarna oplossingen spiegelen.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-rev">Toon visual</button></div></div>
+          <div id="img-rev" class="imgwrap" hidden>
+            <img src="ReverseBrainstorming.png" alt="Reverse brainstorming per fase van de journey">
+          </div>
+        </details>
+      </article>
+
+      <article class="card" data-phase="Ideate">
+        <div class="phase">Ideate</div>
+        <h2 class="title">Crazy 8s (flows en touchpoints)</h2>
+        <div class="meta"><span class="chip good">gereed</span><span class="chip">bron: eigen schets</span></div>
+        <p>Snel acht varianten schetsen voor CTA’s, planner, bevestiging en DM-opvolging.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Doel</b><div>In korte tijd meerdere richtinggevende UI/flow-ideeën genereren voor week één.</div></div>
+          <div class="row"><b>Afbeelding</b><div><button class="btn" type="button" data-toggle="#img-crazy8s">Toon visual</button></div></div>
+          <div id="img-crazy8s" class="imgwrap" hidden>
+            <img src="Crazy8s.png" alt="Crazy 8s – 8 low-fi schetsen">
+          </div>
+        </details>
+      </article>
+
+      <!-- PROTOTYPE (plaats­houder link naar je blueprint) -->
+      <article class="card" data-phase="Prototype">
+        <div class="phase">Prototype</div>
+        <h2 class="title">Service blueprint (klikbaar)</h2>
+        <div class="meta"><span class="chip good">gereed</span></div>
+        <p>Klantreis met touchpoints, frontstage en backstage, systemen en vertrouwenstriggers per fase.</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Link</b>
+            <div>
+              <a class="btn" href="service-blueprintV3.html">Open blueprint</a>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <!-- TEST (placeholder) -->
+      <article class="card" data-phase="Test">
+        <div class="phase">Test</div>
+        <h2 class="title">Experiment-canvas</h2>
+        <div class="meta"><span class="chip todo">opzetten</span></div>
+        <p>Kleine, meetbare tests met hypothese, aanpak, meting en besluit. (Flyer, LinkedIn, beurs).</p>
+        <details>
+          <summary>Details en afbeeldingen</summary>
+          <div class="row"><b>Status</b><div>Wordt ingevuld met testlog en resultaten.</div></div>
+        </details>
+      </article>
+
+    </section>
+  </main>
+
+  <footer>
+    Zet alle genoemde PNG’s in dezelfde map als dit HTML-bestand. De blauwe knoppen klappen de visuals open en dicht per kaart.
+  </footer>
+
+  <script>
+    const phaseFilter = document.getElementById('phaseFilter');
+    const search = document.getElementById('search');
+    const cards = [...document.querySelectorAll('.card')];
+    const printBtn = document.getElementById('printBtn');
+
+    function applyFilters(){
+      const phase = phaseFilter.value;
+      const q = search.value.toLowerCase();
+      cards.forEach(card=>{
+        const matchPhase = phase === 'all' || card.dataset.phase === phase;
+        const matchText = card.textContent.toLowerCase().includes(q);
+        card.style.display = matchPhase && matchText ? '' : 'none';
+      });
+    }
+    phaseFilter.addEventListener('change', applyFilters);
+    search.addEventListener('input', applyFilters);
+    printBtn.addEventListener('click', ()=> window.print());
+
+    // Toggle inline images (scoped per button/target)
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-toggle]');
+      if(!btn) return;
+      const sel = btn.getAttribute('data-toggle');
+      const panel = document.querySelector(sel);
+      if(!panel) return;
+      const isHidden = panel.hasAttribute('hidden');
+      if(isHidden) { panel.removeAttribute('hidden'); btn.textContent = 'Verberg visual'; }
+      else { panel.setAttribute('hidden',''); btn.textContent = 'Toon visual'; }
+    });
+  </script>
+</body>
+</html>

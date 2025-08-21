@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Service blueprint – Youngmatch nieuwe situatie</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --paper:#ffffff;
+      --ink:#0f172a;
+      --muted:#55627a;
+      --line:#e5e7eb;
+      --accent:#0ea5e9;
+      --accent-ink:#075985;
+      --role-mkt:#2563eb;
+      --role-sales:#16a34a;
+      --role-ops:#9333ea;
+      --radius:16px;
+      --cellpad:10px;
+
+      --col1:#f0f9ff; --col1h:#e0f2fe;
+      --col2:#fefce8; --col2h:#fef9c3;
+      --col3:#f0fdf4; --col3h:#dcfce7;
+      --col4:#fdf2f8; --col4h:#fce7f3;
+      --col5:#eef2ff; --col5h:#e0e7ff;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;color:var(--ink)}
+    header{max-width:min(1800px,98vw);margin:18px auto 0;padding:0 18px}
+    .shell{background:var(--paper);border-radius:20px;border:1px solid var(--line);overflow:hidden}
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+    h1{margin:0;font-weight:600;font-size:18px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;color:var(--accent-ink);cursor:pointer}
+    main{padding:0}
+    .legend{padding:10px 16px;color:#334155;border-bottom:1px dashed var(--line);font-size:14px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;color:#fff;margin-right:6px;font-size:12px}
+    .p-mkt{background:var(--role-mkt)} .p-sales{background:var(--role-sales)} .p-ops{background:var(--role-ops)}
+    .tag{display:inline-block;padding:2px 6px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:12px;margin-right:6px;color:#334155}
+    .note{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;background:#fafafa;color:#334155;margin:12px 16px}
+
+    .icon-legend{ /* verborgen legenda; togglen via knop */
+      padding:10px 16px; border-bottom:1px dashed var(--line);
+      display:none; flex-wrap:wrap; gap:10px; align-items:center; background:#fff;
+    }
+    .icon-legend .legend-item{
+      display:inline-flex; align-items:center; gap:6px;
+      border:1px solid var(--line); border-radius:10px; padding:4px 8px; background:#fff; font-size:12px;
+    }
+    .icon-legend .legend-item .tp-icon{width:18px;height:18px; border-radius:6px}
+
+    .grid-wrap{display:flex;gap:16px;align-items:flex-start;padding:0 12px 16px}
+    .grid{
+      display:grid;
+      grid-template-columns:240px repeat(5, 1fr);
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+      flex:1 1 auto;
+      min-width:0;
+    }
+    .colhead{border-right:1px solid var(--line);padding:12px;text-align:center;font-weight:600}
+    .rowhead{background:#f8fafc;border-right:1px solid var(--line);padding:var(--cellpad);font-weight:600}
+    .cell{padding:var(--cellpad);border-top:1px solid var(--line);border-right:1px solid var(--line)}
+    .small{font-size:13px}
+    .muted{color:var(--muted)}
+    .kpi{display:inline-block;padding:2px 6px;border-radius:6px;background:#f0fdfa;border:1px solid #bbf7d0;color:#065f46;font-size:12px;margin:2px 6px 0 0}
+
+    .grid > :nth-child(2){background:var(--col1h)}
+    .grid > :nth-child(3){background:var(--col2h)}
+    .grid > :nth-child(4){background:var(--col3h)}
+    .grid > :nth-child(5){background:var(--col4h)}
+    .grid > :nth-child(6){background:var(--col5h)}
+    .grid > :nth-child(6n + 2){background:var(--col1)}
+    .grid > :nth-child(6n + 3){background:var(--col2)}
+    .grid > :nth-child(6n + 4){background:var(--col3)}
+    .grid > :nth-child(6n + 5){background:var(--col4)}
+    .grid > :nth-child(6n + 6){background:var(--col5)}
+
+    .cell[data-title]{cursor:pointer; position:relative}
+    .cell[data-title]:hover{outline:2px solid var(--accent); outline-offset:-2px}
+    .cell.active{box-shadow:inset 0 0 0 2px var(--accent); background:#fff !important}
+    #bpwrap.col-dim .cell, #bpwrap.col-dim .rowhead{opacity:.35}
+    [data-col="focus"]{opacity:1 !important}
+    .colhead.is-focus{box-shadow:inset 0 -3px 0 var(--accent)}
+
+    .bullets{margin:0; padding-left:18px}
+    .bullets li{margin:0 0 4px 0}
+
+    /* Inspector */
+    #inspector{
+      position:sticky; top:10px; width:520px; flex:0 0 520px;
+      padding:0; border:1px solid var(--line);
+      border-radius:12px; background:#fff; display:none; overflow:hidden;
+      align-self:flex-start;
+      /* margin-top wordt dynamisch gezet voor uitlijning */
+    }
+    #inspector.show{display:block}
+    .insp-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:#f8fafc}
+    #inspector h3{margin:0; font-size:16px}
+    .iconbtn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 8px; cursor:pointer; color:#334155}
+    .iconbtn:focus{outline:2px solid var(--accent)}
+    .insp-body{padding:12px}
+    .insp-body p{margin:0 0 10px 0}
+    .meta{font-size:12px; color:var(--muted); margin-bottom:8px}
+    .links a{display:inline-block; margin:4px 8px 0 0; padding:4px 8px; border:1px solid var(--line); border-radius:8px; text-decoration:none; color:#0b5d7a; background:#f0f9ff}
+    .insp-subhead{margin:12px 0 6px; font-size:14px; line-height:1.3; font-weight:700; color:var(--accent-ink)}
+
+    /* Touchpoint-icoontjes */
+    .tp-icons{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 0}
+    .tp-icon{position:relative; width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;padding:2px;color:#334155;background:#fff}
+    .tp-icon:hover{border-color:var(--accent);color:var(--accent-ink)}
+    .tp-icon svg{width:100%;height:100%;display:block}
+    /* Tooltip bij hover/focus */
+    .tp-icon[data-tip]::after{
+      content: attr(data-tip);
+      position:absolute; left:50%; bottom:100%;
+      transform: translate(-50%,-8px);
+      background:#0f172a; color:#fff;
+      padding:2px 6px; border-radius:6px; font-size:11px; line-height:1.2; white-space:nowrap;
+      opacity:0; pointer-events:none; z-index:20; transition: opacity .12s, transform .12s;
+    }
+    .tp-icon[data-tip]::before{
+      content:""; position:absolute; left:50%; bottom:100%;
+      transform: translate(-50%,-2px);
+      border:6px solid transparent; border-top-color:#0f172a;
+      opacity:0; z-index:20; transition: opacity .12s;
+    }
+    .tp-icon[data-tip]:hover::after,
+    .tp-icon[data-tip]:hover::before,
+    .tp-icon[data-tip]:focus::after,
+    .tp-icon[data-tip]:focus::before{ opacity:1; }
+
+    /* Legenda marketingtermen (extra grid) */
+    .legend-terms{ margin:12px 16px; }
+    .terms-grid{ display:grid; grid-template-columns:160px 1fr; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+    .terms-grid .t-head{ padding:10px 12px; font-weight:600; background:#f8fafc; border-bottom:1px solid var(--line); }
+    .terms-grid .t-cell{ padding:8px 12px; border-top:1px solid var(--line); }
+    .terms-grid .t-cell:nth-child(odd){ border-right:1px solid var(--line); }
+    .abbr{ font-weight:700; color:var(--accent-ink); }
+
+    @media(max-width:1500px){
+      #inspector{display:none}
+      .grid-wrap{padding-right:12px}
+    }
+    @media(max-width:1024px){
+      .grid{grid-template-columns:180px repeat(5, 1fr)}
+      .colhead{font-size:13px}
+      .rowhead{font-size:13px}
+      .cell{font-size:14px}
+    }
+    @media print{
+      body{background:#fff}
+      .shell{border:none}
+      .topbar,.legend .tag{display:none}
+      #inspector{display:none}
+      .grid{border-color:#ddd}
+      .cell,.rowhead,.colhead{border-color:#ddd}
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="shell">
+      <div class="topbar">
+        <h1>Service blueprint nieuwe situatie – van onbekend naar ambassadeur</h1>
+        <div class="toolbar">
+          <button id="resetBtn">Reset weergave</button>
+          <button id="svgBtn">Download SVG</button>
+          <button id="pngBtn">Download PNG</button>
+          <button onclick="window.print()">Print of exporteer</button>
+          <button id="legendToggleBtn" type="button">Toon icoonlegenda</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span class="pill p-mkt">Marketing en content</span>
+        <span class="pill p-sales">Sales en account</span>
+        <span class="pill p-ops">Operations en CRM</span>
+        <span class="tag">SLA 24 uur reactie</span>
+        <span class="tag">Elke lead een volgende actie</span>
+      </div>
+
+      <div id="iconLegend" class="icon-legend"></div>
+
+      <main>
+        <div class="grid-wrap" id="bpwrap">
+          <div class="grid" id="bp">
+            <div class="colhead muted">Lagen</div>
+            <div class="colhead" data-colhead="Onbekend">Onbekend</div>
+            <div class="colhead" data-colhead="Oriëntatie">Oriëntatie</div>
+            <div class="colhead" data-colhead="Afweging">Afweging</div>
+            <div class="colhead" data-colhead="Klant">Klant</div>
+            <div class="colhead" data-colhead="Ambassadeur">Ambassadeur</div>
+
+            <!-- Acties klant (volzinnen) -->
+            <div class="rowhead">Acties klant</div>
+            <div class="cell small">Ziet gerichte boodschap of DM en klikt door naar de landingspagina.</div>
+            <div class="cell small">Leest korte case en stappen. Laat gegevens achter of plant direct een scan of intake.</div>
+            <div class="cell small">Kiest een tijdslot, reageert op bevestiging en deelt context en teaminformatie.</div>
+            <div class="cell small">Neemt deel aan kickoff en levert materiaal aan voor campagne of traject.</div>
+            <div class="cell small">Beoordeelt resultaat, deelt review en case en tipt netwerk.</div>
+
+            <!-- Gedachte (volzinnen) -->
+            <div class="rowhead">Gedachte</div>
+            <div class="cell small">Werving hapert. Ik wil snel overzicht. Is dit anders dan werving en selectie.</div>
+            <div class="cell small">Dit lijkt te passen bij bedrijven zoals het mijne. Wat gebeurt er na aanmelding.</div>
+            <div class="cell small">Past dit binnen mijn budget en tempo. Wat is het verschil met alternatieven.</div>
+            <div class="cell small">Het is transparant en duidelijk. Ik weet wat we samen doen in welke volgorde.</div>
+            <div class="cell small">Dit werkt en ik wil dit delen met anderen.</div>
+
+            <!-- Gevoel (volzinnen) -->
+            <div class="rowhead">Gevoel</div>
+            <div class="cell small">Druk en onzeker.</div>
+            <div class="cell small">Hoopvol en nieuwsgierig.</div>
+            <div class="cell small">Afwachtend maar geïnteresseerd.</div>
+            <div class="cell small">Gerust en betrokken.</div>
+            <div class="cell small">Trots en tevreden.</div>
+
+            <!-- Touchpoints (bullets + detail) -->
+            <div class="rowhead">Touchpoints</div>
+            <div class="cell" data-title="Touchpoints in Onbekend" data-owner="Marketing" data-fase="Onbekend" data-rij="Touchpoints"
+                 data-icons="linkedin,email,website"
+                 data-links="DM templates:/files/YM_LinkedIn DM_Definitief.docx|Bos Dynamics:https://www.youngmatch.nl/testimonial/bos-dynamics/|BMG:https://www.youngmatch.nl/testimonial/bmg/|Van Driesten Harskamp:https://www.youngmatch.nl/testimonial/driesten-harskamp/|Van Ee Staalspecialisten:https://www.youngmatch.nl/testimonial/van-ee-staalspecialisten/|Van de Hoef Logistiek:https://www.youngmatch.nl/testimonial/van-de-hoef-logistiek/"
+                 data-detail="<p>Gebruik de definitieve DM-templates per segment (uitgebreide versies). Voeg een mini-case toe en link door naar de site.</p><p><strong>Advies</strong> Personaliseer de openingszin (bedrijfsnaam, sector, regio). Gebruik posts van Lisette ter ondersteuning, niet als vervanging.</p>">
+              <ul class="bullets">
+                <li>DM of mail per segment</li>
+                <li>Mini-case + duidelijke CTA</li>
+                <li>Link naar website</li>
+              </ul>
+              <span class="pill p-mkt">M</span>
+            </div>
+            <div class="cell" data-title="Touchpoints in Oriëntatie" data-owner="Marketing" data-fase="Oriëntatie" data-rij="Touchpoints"
+                 data-icons="website,form"
+                 data-links="Website:https://www.youngmatch.nl|Planner concept:/files/planner-concept.md"
+                 data-detail="<p>Landingspagina is youngmatch.nl met pakketten als indicatieve bandbreedte. Duidelijke CTA om intake te plannen. Planner is voorlopig concept.</p><p><strong>Advies</strong> Start met een simpele planner met drie tijdsloten. Valideer effect en werk toe naar tool of Calendly.</p>">
+              <ul class="bullets">
+                <li>Website als landingspagina</li>
+                <li>Pakketten = bandbreedte</li>
+                <li>CTA: plan intake (planner)</li>
+              </ul>
+              <span class="pill p-mkt">M</span>
+            </div>
+            <div class="cell" data-title="Touchpoints in Afweging" data-owner="Sales" data-fase="Afweging" data-rij="Touchpoints"
+                 data-icons="email,calendar"
+                 data-links="Intake uitnodiging template:/files/YM__Hr marketing voorstel.docx|Plan one pager:/files/YW__HR Marketingplan nw blanco .docx"
+                 data-detail="<p>Persoonlijke uitnodiging met drie tijdsloten en korte uitleg wat de intake oplevert. Bevestiging per mail met agenda en next steps.</p><p><strong>Advies</strong> Maak een herbruikbare mailtemplate (variabelen: sector, doel, tijdlijn) en een one-pager die het intake-resultaat samenvat.</p>">
+              <ul class="bullets">
+                <li>Uitnodiging met 3 tijdsloten</li>
+                <li>Korte uitleg intake</li>
+                <li>Bevestigingsmail + agenda</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+            <div class="cell" data-title="Touchpoints in Klant" data-owner="Operations" data-fase="Klant" data-rij="Touchpoints"
+                 data-icons="calendar,video"
+                 data-links="Verkooppresentatie:/files/YM_verkooppresentatie.pptx"
+                 data-detail="<p>Kickoff, voortgangsupdate en korte statusmails per mijlpaal met wat wij doen en wat de klant aanlevert.</p><p><strong>Advies</strong> Hergebruik slides als visuele ankers. Voeg vaste update-cadans toe gekoppeld aan dashboardmomenten.</p>">
+              <ul class="bullets">
+                <li>Kickoff sessie</li>
+                <li>Regelmatige updates</li>
+                <li>Duidelijke taken klant/Youngmatch</li>
+              </ul>
+              <span class="pill p-ops">O</span>
+            </div>
+            <div class="cell" data-title="Touchpoints in Ambassadeur" data-owner="Sales" data-fase="Ambassadeur" data-rij="Touchpoints"
+                 data-icons="form,review,website"
+                 data-links="Review verzoek:/files/review-verzoek.msg|Case format:/files/case-format.md"
+                 data-detail="<p>NPS en reviewverzoek. Vriendelijk vragen om logo-toestemming en korte casecall plannen.</p><p><strong>Advies</strong> Maak een lichtgewicht caseformat (3 vragen + 1 visual). Plan bij hoge NPS direct een referral-vraag.</p>">
+              <ul class="bullets">
+                <li>NPS + review</li>
+                <li>Toestemming logo</li>
+                <li>Case- en referralverzoek</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+
+            <!-- Frontstage -->
+            <div class="rowhead">Frontstage Youngmatch</div>
+            <div class="cell" data-title="Frontstage in Onbekend" data-owner="Sales" data-fase="Onbekend" data-rij="Frontstage Youngmatch"
+                 data-links="Follow up sjabloon:/files/templates/followup.msg"
+                 data-detail="<p>Reactie binnen 24 uur op inkomende leads. Follow-up bij geen reactie. Alle acties loggen in CRM.</p><p><strong>Advies</strong> Documenteer belvolgorde (3 stappen + deadlines + copy). Voeg datakwaliteitscheck toe bij eerste aanraking.</p>">
+              <ul class="bullets">
+                <li>Reactie &lt; 24 uur</li>
+                <li>Follow-up bij geen respons</li>
+                <li>Alles loggen in CRM</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+            <div class="cell" data-title="Frontstage in Oriëntatie" data-owner="Sales" data-fase="Oriëntatie" data-rij="Frontstage Youngmatch"
+                 data-links="Planner concept:/files/planner-concept.md"
+                 data-detail="<p>Drie tijdsloten aanbieden en verwachtingen schetsen (stappen, doorlooptijd). Intake in kalender.</p><p><strong>Advies</strong> Test 3 slots vs. vrije keuze. Voeg korte video toe: ‘Zo werkt de intake’.</p>">
+              <ul class="bullets">
+                <li>3 tijdsloten aanbieden</li>
+                <li>Verwachtingen benoemen</li>
+                <li>Direct plannen</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+            <div class="cell" data-title="Frontstage in Afweging" data-owner="Sales" data-fase="Afweging" data-rij="Frontstage Youngmatch"
+                 data-links="Intake uitnodiging template:/files/YM__Hr marketing voorstel.docx|Plan one pager:/files/YW__HR Marketingplan nw blanco .docx"
+                 data-detail="<p>Intake en plan op één pagina (doelen, aanpak, kostenbandbreedte).</p><p><strong>Advies</strong> Varianten per sector (bouw, techniek, transport, groen) voor betere aansluiting.</p>">
+              <ul class="bullets">
+                <li>Intake uitvoeren</li>
+                <li>Plan op één pagina</li>
+                <li>Bandbreedte kosten</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+            <div class="cell" data-title="Frontstage in Klant" data-owner="Operations" data-fase="Klant" data-rij="Frontstage Youngmatch"
+                 data-links="Procesoverzicht:/files/process-overview.md"
+                 data-detail="<p>Voortgang zichtbaar maken. Elke stap bevestigen: wat doen wij, wat levert klant.</p><p><strong>Advies</strong> Vast update-sjabloon: status, risico’s, gevraagde input, datums.</p>">
+              <ul class="bullets">
+                <li>Voortgang tonen</li>
+                <li>Heldere taakverdeling</li>
+                <li>Regelmatige updates</li>
+              </ul>
+              <span class="pill p-ops">O</span>
+            </div>
+            <div class="cell" data-title="Frontstage in Ambassadeur" data-owner="Sales" data-fase="Ambassadeur" data-rij="Frontstage Youngmatch"
+                 data-links="Review verzoek:/files/review-verzoek.msg|Referral flow:/files/referral-flow.md"
+                 data-detail="<p>Review vragen en warm referral-verzoek doen. Korte evaluatiecall aanbieden.</p><p><strong>Advies</strong> Drie voorbeeldmails (review, case, referral). CRM-reminders op week 1 en 3.</p>">
+              <ul class="bullets">
+                <li>Review vragen</li>
+                <li>Referral vragen</li>
+                <li>Evaluatiecall</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+
+            <!-- Backstage -->
+            <div class="rowhead">Backstage Youngmatch</div>
+            <div class="cell small" data-title="Backstage in Onbekend" data-owner="Operations, Marketing" data-fase="Onbekend" data-rij="Backstage Youngmatch"
+                 data-links="CRM leadflow:/files/crm-leadflow.md|DM templates:/files/YM_LinkedIn DM_Definitief.docx"
+                 data-detail="<p>Lead aanmaken in CRM, eigenaar toewijzen, volgende actie verplicht. Content selecteren uit DM-bestand.</p><p><strong>Advies</strong> Definieer leadstatussen + exit-criteria. Automatiseer opvolgreminders.</p>">
+              <ul class="bullets">
+                <li>Lead in CRM</li>
+                <li>Eigenaar + volgende actie</li>
+                <li>Content klaarzetten</li>
+              </ul>
+              <span class="pill p-ops">O</span> <span class="pill p-mkt">M</span>
+            </div>
+            <div class="cell small" data-title="Backstage in Oriëntatie" data-owner="Operations" data-fase="Oriëntatie" data-rij="Backstage Youngmatch"
+                 data-links="Leadscoring regels:/files/crm-scoring.md"
+                 data-detail="<p>Interactie registreren, leadscoring toepassen en herhaalacties bij geen respons.</p><p><strong>Advies</strong> Eenvoudige score starten (kanaal, respons, sectorfit). Maandelijks kalibreren.</p>">
+              <ul class="bullets">
+                <li>Alles loggen</li>
+                <li>Leadscoring</li>
+                <li>Herhaalacties</li>
+              </ul>
+              <span class="pill p-ops">O</span>
+            </div>
+            <div class="cell small" data-title="Backstage in Afweging" data-owner="Marketing, Operations" data-fase="Afweging" data-rij="Backstage Youngmatch"
+                 data-links="Vragenlijst intake:/files/YM_vragenlijst intake .docx|Vragenlijst medewerker:/files/YM_vragenlijst medewerker .docx|Vragenlijst USP:/files/YM_vragenlijst USP .docx"
+                 data-detail="<p>Intake voorbereiden per sector en persona. Templates vullen met input uit intake-, medewerker- en USP-lijsten.</p><p><strong>Advies</strong> Maak een verkorte en uitgebreide versie per lijst voor tempo vs. diepte.</p>">
+              <ul class="bullets">
+                <li>Voorbereiding per sector</li>
+                <li>Templates vullen</li>
+                <li>Plan genereren</li>
+              </ul>
+              <span class="pill p-mkt">M</span> <span class="pill p-ops">O</span>
+            </div>
+            <div class="cell small" data-title="Backstage in Klant" data-owner="Operations" data-fase="Klant" data-rij="Backstage Youngmatch"
+                 data-links="Sprintbord:/files/sprintbord.md|Dashboard schets:/files/dashboard-sketch.md"
+                 data-detail="<p>Sprint- en takenbord beheren. Dashboards bijwerken. Lessons learned vastleggen.</p><p><strong>Advies</strong> Koppel sprintreview aan dashboardmoment. Leg 3 learnings per sprint vast.</p>">
+              <ul class="bullets">
+                <li>Sprintbord bijhouden</li>
+                <li>Dashboard bijwerken</li>
+                <li>Learnings loggen</li>
+              </ul>
+              <span class="pill p-ops">O</span>
+            </div>
+            <div class="cell small" data-title="Backstage in Ambassadeur" data-owner="Sales" data-fase="Ambassadeur" data-rij="Backstage Youngmatch"
+                 data-links="Case format:/files/case-format.md|Referral flow:/files/referral-flow.md"
+                 data-detail="<p>Resultaten klaarzetten voor case. Referral opvolgen. Assets archiveren.</p><p><strong>Advies</strong> Minimum-set assets per case (quote, metric, visual, toestemming). Checklist gebruiken.</p>">
+              <ul class="bullets">
+                <li>Resultaten bundelen</li>
+                <li>Referral opvolgen</li>
+                <li>Assets archiveren</li>
+              </ul>
+              <span class="pill p-sales">S</span>
+            </div>
+
+            <!-- Systemen -->
+            <div class="rowhead">Ondersteunende systemen</div>
+            <div class="cell small"><ul class="bullets"><li>CRM</li><li>E-mail</li><li>LinkedIn</li><li>Tracking</li><li>Contentbibliotheek</li></ul></div>
+            <div class="cell small"><ul class="bullets"><li>Website</li><li>Formulier</li><li>Planner placeholder</li></ul></div>
+            <div class="cell small"><ul class="bullets"><li>Video</li><li>Kalender</li><li>Documentsjablonen</li></ul></div>
+            <div class="cell small"><ul class="bullets"><li>Projecttool</li><li>Analytics</li><li>Dashboard</li></ul></div>
+            <div class="cell small"><ul class="bullets"><li>Reviewtool</li><li>Casebibliotheek</li></ul></div>
+
+            <!-- Vertrouwen -->
+            <div class="rowhead">Vertrouwenstriggers</div>
+            <div class="cell small" data-title="Vertrouwen in Onbekend" data-owner="Marketing" data-fase="Onbekend" data-rij="Vertrouwenstriggers"
+                 data-links="Cases overzicht:https://www.youngmatch.nl/testimonials/"
+                 data-detail="<p>Korte sectorcase en bewijs (1 metric of quote). Duidelijk wat er gebeurt na klik.</p><p><strong>Advies</strong> Max. 3 bullets + 1 bewijsregel per DM. Link naar relevante casepagina.</p>">
+              <ul class="bullets">
+                <li>Mini-case (relevant)</li>
+                <li>1 bewijsregel</li>
+                <li>Heldere verwachting</li>
+              </ul>
+            </div>
+            <div class="cell small" data-title="Vertrouwen in Oriëntatie" data-owner="Marketing" data-fase="Oriëntatie" data-rij="Vertrouwenstriggers"
+                 data-links="Zo werken wij script:/files/zo-werken-wij-script.md"
+                 data-detail="<p>‘Zo werken wij’ in 1 minuut (tekst of video). Tijdslijnen voor week 1.</p><p><strong>Advies</strong> Plaats video boven de vouw. Test 45–75 sec.</p>">
+              <ul class="bullets">
+                <li>Korte uitleg</li>
+                <li>Tijdslijnen week 1</li>
+                <li>Video boven de vouw</li>
+              </ul>
+            </div>
+            <div class="cell small" data-title="Vertrouwen in Afweging" data-owner="Sales" data-fase="Afweging" data-rij="Vertrouwenstriggers"
+                 data-links="Kosten bandbreedte:/files/kosten-bandbreedte.md"
+                 data-detail="<p>Bandbreedte in kosten + wat wel/niet inbegrepen is. Referenties + mini-case.</p><p><strong>Advies</strong> Vergelijk expliciet met W&S en waarom dit bij mkb past.</p>">
+              <ul class="bullets">
+                <li>Kosten bandbreedte</li>
+                <li>Wat in scope</li>
+                <li>Referenties</li>
+              </ul>
+            </div>
+            <div class="cell small" data-title="Vertrouwen in Klant" data-owner="Operations" data-fase="Klant" data-rij="Vertrouwenstriggers"
+                 data-links="Evaluatiekaders:/files/evaluatiekaders.md"
+                 data-detail="<p>Voortgang zichtbaar. Tussentijdse resultaten en evaluatiekaders.</p><p><strong>Advies</strong> Gebruik steeds dezelfde grafiekvorm voor herkenning.</p>">
+              <ul class="bullets">
+                <li>Voortgang</li>
+                <li>Tussentijdse resultaten</li>
+                <li>Evaluatiekaders</li>
+              </ul>
+            </div>
+            <div class="cell small" data-title="Vertrouwen in Ambassadeur" data-owner="Sales" data-fase="Ambassadeur" data-rij="Vertrouwenstriggers"
+                 data-links="Review flow:/files/review-verzoek.msg"
+                 data-detail="<p>Concrete resultaten en review. Bedankactie en case-uitnodiging.</p><p><strong>Advies</strong> Vraag om een quote die een veelvoorkomende twijfel wegneemt.</p>">
+              <ul class="bullets">
+                <li>Resultaten delen</li>
+                <li>Review en bedankje</li>
+                <li>Case-uitnodiging</li>
+              </ul>
+            </div>
+
+            <!-- KPI's -->
+            <div class="rowhead">KPI’s en beslismomenten</div>
+            <div class="cell" data-title="KPI’s in Onbekend" data-owner="Marketing" data-fase="Onbekend" data-rij="KPI’s en beslismomenten"
+                 data-links="KPI dashboard:/files/kpi-dashboard.md"
+                 data-detail="<p>Monitor bereik per kanaal en klikratio. Boodschap/doelgroep bijsturen waar nodig.</p><p><strong>Advies</strong> Wekelijks top 3 DM-openers en respons per segment rapporteren. Openingszin aanscherpen.</p>">
+              <span class="kpi">Bereik per kanaal</span>
+              <span class="kpi">Klikratio</span>
+              <div class="small muted">Beslismoment: boodschap of doelgroep bijsturen.</div>
+            </div>
+            <div class="cell" data-title="KPI’s in Oriëntatie" data-owner="Marketing" data-fase="Oriëntatie" data-rij="KPI’s en beslismomenten"
+                 data-links="LP metrics template:/files/lp-metrics.csv"
+                 data-detail="<p>Meet aanmeldingen en time to first reply. Landingspagina en planner aanpassen indien nodig.</p><p><strong>Advies</strong> Variant testen met 3 bullets ‘wat je krijgt’ en een termijn (bijv. binnen 24 uur reactie).</p>">
+              <span class="kpi">Aanmeldingen</span>
+              <span class="kpi">Time to first reply</span>
+              <div class="small muted">Beslismoment: LP of planner aanpassen.</div>
+            </div>
+            <div class="cell" data-title="KPI’s in Afweging" data-owner="Sales" data-fase="Afweging" data-rij="KPI’s en beslismomenten"
+                 data-links="Funnel metrics template:/files/funnel-metrics.csv"
+                 data-detail="<p>Afspraakratio en show rate volgen. Volgorde en copy bijstellen.</p><p><strong>Advies</strong> 3-slots-mail vs. vrije planner A/B’en op show rate en no-shows.</p>">
+              <span class="kpi">Afspraakratio</span>
+              <span class="kpi">Show rate</span>
+              <div class="small muted">Beslismoment: volgorde/copy bijstellen.</div>
+            </div>
+            <div class="cell" data-title="KPI’s in Klant" data-owner="Operations" data-fase="Klant" data-rij="KPI’s en beslismomenten"
+                 data-links="Project KPI’s template:/files/project-kpi.csv"
+                 data-detail="<p>Doorlooptijd en mijlpaaldoelen monitoren. Planning of eigenaarschap aanpassen.</p><p><strong>Advies</strong> Koppel elke mijlpaal aan een automatische update met taken en datums.</p>">
+              <span class="kpi">Doorlooptijd</span>
+              <span class="kpi">Mijlpaaldoelen</span>
+              <div class="small muted">Beslismoment: planning/eigenaarschap.</div>
+            </div>
+            <div class="cell" data-title="KPI’s in Ambassadeur" data-owner="Sales" data-fase="Ambassadeur" data-rij="KPI’s en beslismomenten"
+                 data-links="NPS dashboard:/files/nps-dashboard.md"
+                 data-detail="<p>NPS, cases en referrals meten. Referral- en caseproces aanscherpen.</p><p><strong>Advies</strong> Korte NPS + één open vraag. Binnen 2 werkdagen reageren op feedback.</p>">
+              <span class="kpi">NPS</span>
+              <span class="kpi">Cases/Referrals</span>
+              <div class="small muted">Beslismoment: proces aanscherpen.</div>
+            </div>
+          </div>
+
+          <aside id="inspector" aria-live="polite">
+            <div class="insp-head">
+              <h3 id="inspTitle">Detail</h3>
+              <button class="iconbtn" id="closeInspBtn" title="Terug naar blueprint">Sluit detail</button>
+            </div>
+            <div class="insp-body">
+              <div class="meta" id="inspMeta"></div>
+              <div id="inspBody"></div>
+              <div class="links" id="inspLinks"></div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="note">
+          <h4 class="insp-subhead">Toelichting</h4>
+          <p>Reageer op inkomende leads binnen 24 uur. In CRM is een volgende actie verplicht. Marketing beheert bibliotheek en landingspagina. Sales beheert intake, kalender en opvolging. Operations beheert dashboards en datakwaliteit. Plan een wekelijkse review (metrics & blockers) en een maandelijkse retro (tempo, copy, kanaalvolgorde). Leg learnings vast in bibliotheek en blueprint.</p>
+        </div>
+
+        <section class="legend-terms" aria-labelledby="termsHeading">
+          <h4 class="insp-subhead" id="termsHeading">Legenda marketingtermen</h4>
+          <div class="terms-grid" role="table" aria-label="Legenda marketingtermen">
+            <div class="t-head" role="columnheader">Afkorting</div>
+            <div class="t-head" role="columnheader">Betekenis</div>
+
+            <div class="t-cell" role="cell"><span class="abbr">LP</span></div><div class="t-cell" role="cell">Landing page: gerichte pagina waar verkeer landt en converteert.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CRM</span></div><div class="t-cell" role="cell">Customer Relationship Management: systeem voor relaties, deals en opvolging.</div>
+            <div class="t-cell" role="cell"><span class="abbr">NPS</span></div><div class="t-cell" role="cell">Net Promoter Score: klantloyaliteitsscore (aanbevelingsbereidheid).</div>
+            <div class="t-cell" role="cell"><span class="abbr">KPI</span></div><div class="t-cell" role="cell">Kritieke prestatie-indicator: meetpunt om doelrealisatie te volgen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CTA</span></div><div class="t-cell" role="cell">Call to action: concrete aanzet tot actie (bijv. plan intake).</div>
+            <div class="t-cell" role="cell"><span class="abbr">CTR</span></div><div class="t-cell" role="cell">Click-through rate: percentage kliks t.o.v. vertoningen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CVR</span></div><div class="t-cell" role="cell">Conversion rate: percentage bezoekers dat gewenste actie doet.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPL</span></div><div class="t-cell" role="cell">Cost per lead: kosten gedeeld door aantal leads.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPA</span></div><div class="t-cell" role="cell">Cost per acquisition: kosten per nieuwe klant/plaatsing.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CAC</span></div><div class="t-cell" role="cell">Customer acquisition cost: totale verwervingskosten per klant.</div>
+            <div class="t-cell" role="cell"><span class="abbr">LTV</span></div><div class="t-cell" role="cell">Lifetime value: verwachte omzet/waarde per klant over tijd.</div>
+            <div class="t-cell" role="cell"><span class="abbr">MQL</span></div><div class="t-cell" role="cell">Marketing qualified lead: lead die aan marketing-criteria voldoet.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SQL</span></div><div class="t-cell" role="cell">Sales qualified lead: door sales gevalideerde, beloftevolle lead.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SAL</span></div><div class="t-cell" role="cell">Sales accepted lead: door sales geaccepteerde MQL (overdrachtsmoment).</div>
+            <div class="t-cell" role="cell"><span class="abbr">ROAS</span></div><div class="t-cell" role="cell">Return on ad spend: omzet gedeeld door advertentiekosten.</div>
+            <div class="t-cell" role="cell"><span class="abbr">ROI</span></div><div class="t-cell" role="cell">Return on investment: (opbrengst − kosten) / kosten.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPM</span></div><div class="t-cell" role="cell">Cost per mille: kosten per 1.000 vertoningen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPC</span></div><div class="t-cell" role="cell">Cost per click: kosten per klik.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPV</span></div><div class="t-cell" role="cell">Cost per view: kosten per videoweergave.</div>
+            <div class="t-cell" role="cell"><span class="abbr">GA4</span></div><div class="t-cell" role="cell">Google Analytics 4: analysetool voor verkeer en conversies.</div>
+            <div class="t-cell" role="cell"><span class="abbr">UTM</span></div><div class="t-cell" role="cell">Urchin Tracking Module: tags om herkomst van verkeer te meten.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SEO</span></div><div class="t-cell" role="cell">Search engine optimization: vindbaarheid verbeteren in zoekmachines.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SEA</span></div><div class="t-cell" role="cell">Search engine advertising: adverteren in zoekmachines.</div>
+            <div class="t-cell" role="cell"><span class="abbr">PPC</span></div><div class="t-cell" role="cell">Pay-per-click: afrekenen per klik (o.a. Google Ads).</div>
+            <div class="t-cell" role="cell"><span class="abbr">ABM</span></div><div class="t-cell" role="cell">Account-based marketing: specifieke targetaccounts centraal.</div>
+            <div class="t-cell" role="cell"><span class="abbr">ICP</span></div><div class="t-cell" role="cell">Ideal customer profile: ideale klantkenmerken.</div>
+            <div class="t-cell" role="cell"><span class="abbr">USP</span></div><div class="t-cell" role="cell">Unique selling proposition: onderscheidend argument.</div>
+            <div class="t-cell" role="cell"><span class="abbr">UVP</span></div><div class="t-cell" role="cell">Unique value proposition: unieke waarde voor de klant.</div>
+            <div class="t-cell" role="cell"><span class="abbr">OKR</span></div><div class="t-cell" role="cell">Objectives and key results: doelensysteem op outcome-niveau.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SLA</span></div><div class="t-cell" role="cell">Service level agreement: serviceniveau-afspraken (bijv. 24 uur reactie).</div>
+            <div class="t-cell" role="cell"><span class="abbr">CMS</span></div><div class="t-cell" role="cell">Content management system: beheer van websitecontent.</div>
+            <div class="t-cell" role="cell"><span class="abbr">ATS</span></div><div class="t-cell" role="cell">Applicant tracking system: sollicitatie- en kandidaatvolgsysteem.</div>
+            <div class="t-cell" role="cell"><span class="abbr">EVP</span></div><div class="t-cell" role="cell">Employer value proposition: werkgeversbelofte/-propositie.</div>
+            <div class="t-cell" role="cell"><span class="abbr">eNPS</span></div><div class="t-cell" role="cell">Employee NPS: medewerkersloyaliteit/-aanbeveling.</div>
+            <div class="t-cell" role="cell"><span class="abbr">TTFR</span></div><div class="t-cell" role="cell">Time to first response: tijd tot eerste reactie op lead/kandidaat.</div>
+            <div class="t-cell" role="cell"><span class="abbr">TTH</span></div><div class="t-cell" role="cell">Time to hire: tijd tussen vacaturestart en aannemen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">CPH</span></div><div class="t-cell" role="cell">Cost per hire: kosten per vervulde vacature.</div>
+            <div class="t-cell" role="cell"><span class="abbr">OAR</span></div><div class="t-cell" role="cell">Offer acceptance rate: percentage geaccepteerde aanbiedingen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">SoH</span></div><div class="t-cell" role="cell">Source of hire: herkomst van de aangenomen kandidaten.</div>
+            <div class="t-cell" role="cell"><span class="abbr">ACR</span></div><div class="t-cell" role="cell">Application completion rate: percentage dat de sollicitatie afrondt.</div>
+            <div class="t-cell" role="cell"><span class="abbr">QoH</span></div><div class="t-cell" role="cell">Quality of hire: kwaliteit van nieuwe aanstellingen.</div>
+            <div class="t-cell" role="cell"><span class="abbr">HSM</span></div><div class="t-cell" role="cell">HR Succes Monitor: jouw formulier/monitor voor HR-resultaten.</div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </header>
+
+  <script>
+    const grid = document.getElementById('bp');
+    const bpwrap = document.getElementById('bpwrap');
+    const insp = document.getElementById('inspector');
+    const inspTitle = document.getElementById('inspTitle');
+    const inspMeta = document.getElementById('inspMeta');
+    const inspBody = document.getElementById('inspBody');
+    const inspLinks = document.getElementById('inspLinks');
+    const closeInspBtn = document.getElementById('closeInspBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const legendEl = document.getElementById('iconLegend');
+    const legendToggleBtn = document.getElementById('legendToggleBtn');
+
+    function clearHash(){
+      const clean = location.pathname + location.search;
+      history.replaceState(null, '', clean);
+    }
+    function clearActiveCell(){
+      grid.querySelectorAll('.cell.active').forEach(c=>c.classList.remove('active'));
+    }
+    function clearColumnFocus(){
+      bpwrap.classList.remove('col-dim');
+      grid.querySelectorAll('[data-col]').forEach(c=>c.removeAttribute('data-col'));
+      grid.querySelectorAll('.colhead').forEach(x=>x.classList.remove('is-focus'));
+    }
+    function closeInspector(){
+      insp.classList.remove('show');
+      insp.style.marginTop = '0px';
+      clearActiveCell();
+      clearHash();
+    }
+
+    // Inspector uitlijnen met aangeklikte rij
+    function alignInspectorToCell(cell){
+      const gridRect = grid.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+      const offset = Math.max(0, Math.round(cellRect.top - gridRect.top));
+      insp.style.marginTop = offset + 'px';
+    }
+
+    // Iconen (inline SVG)
+    const ICONS = {
+      linkedin: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5.001 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM14.5 9c-2.21 0-3.5 1.204-3.5 2.86V21h4v-6.375c0-1.062.75-1.81 1.75-1.81s1.75.748 1.75 1.81V21h4v-7.64C22 10.257 20.293 9 18.25 9c-1.298 0-2.34.53-2.75 1.31V9h-1z"/></svg>`,
+      website: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>`,
+      form: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>`,
+      email: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,
+      phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.64-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.98.35 1.93.65 2.84a2 2 0 0 1-.45 2.11L8 9a16 16 0 0 0 7 7l.33-.31a2 2 0 0 1 2.11-.45c.91.3 1.86.52 2.84.65A2 2 0 0 1 22 16.92z"/></svg>`,
+      video: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M17 9l4-2v10l-4-2z"/></svg>`,
+      review: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.27l5.18 3.06-1.64-5.73L20 10.9l-5.9-.5L12 5l-2.1 5.4-5.9.5 4.46 3.7-1.64 5.73z"/></svg>`
+    };
+
+    function kindLabel(kind){
+      return ({
+        linkedin:'Social (LinkedIn)',
+        website:'Website',
+        form:'Formulier',
+        email:'E-mail',
+        calendar:'Planner/Kalender',
+        phone:'Telefoon',
+        video:'Video',
+        review:'Review/NPS'
+      })[kind] || kind;
+    }
+
+    function injectTouchpointIcons(){
+      document.querySelectorAll('.cell[data-rij="Touchpoints"][data-icons]').forEach(cell=>{
+        const kinds = cell.dataset.icons.split(',').map(s=>s.trim()).filter(Boolean);
+        if(!kinds.length) return;
+
+        let bar = cell.querySelector('.tp-icons');
+        if(!bar){
+          bar = document.createElement('div');
+          bar.className = 'tp-icons';
+          const first = cell.firstElementChild;
+          if(first) cell.insertBefore(bar, first); else cell.appendChild(bar);
+        } else {
+          bar.innerHTML = '';
+        }
+
+        kinds.forEach(k=>{
+          const svg = ICONS[k];
+          if(!svg) return;
+          const span = document.createElement('span');
+          span.className = 'tp-icon';
+          const label = kindLabel(k);
+          span.setAttribute('data-tip', label);
+          span.setAttribute('aria-label', label);
+          span.tabIndex = 0;
+          span.innerHTML = svg;
+          bar.appendChild(span);
+        });
+      });
+    }
+
+    function renderIconLegend(){
+      if(!legendEl) return;
+      const used = new Set();
+      document.querySelectorAll('.cell[data-rij="Touchpoints"][data-icons]').forEach(c=>{
+        c.dataset.icons.split(',').map(s=>s.trim()).forEach(k=>{ if(ICONS[k]) used.add(k); });
+      });
+      legendEl.innerHTML = '';
+      used.forEach(k=>{
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<span class="tp-icon" aria-hidden="true">${ICONS[k]}</span><span>${kindLabel(k)}</span>`;
+        legendEl.appendChild(item);
+      });
+    }
+
+    function openCell(cell){
+      clearActiveCell();
+      cell.classList.add('active');
+      insp.classList.add('show');
+
+      inspTitle.textContent = cell.dataset.title || 'Detail';
+      const owner = cell.dataset.owner ? 'Eigenaar: ' + cell.dataset.owner : '';
+      const fase = cell.dataset.fase ? 'Fase: ' + cell.dataset.fase : '';
+      const rij = cell.dataset.rij ? ' • Rij: ' + cell.dataset.rij : '';
+      inspMeta.textContent = [owner, [fase, rij].filter(Boolean).join('')].filter(Boolean).join('  |  ');
+
+      // detailinhoud + Advies als kop
+      const raw = cell.dataset.detail || cell.innerHTML.trim();
+      const withAdvHead = raw.replace(
+        /<p>\s*<strong>\s*Advies\s*<\/strong>\s*([\s\S]*?)<\/p>/gi,
+        '<h4 class="insp-subhead">Advies</h4><p>$1</p>'
+      );
+      inspBody.innerHTML = withAdvHead;
+
+      // links
+      inspLinks.innerHTML = '';
+      const links = (cell.dataset.links || '').split('|').map(s=>s.trim()).filter(Boolean);
+      links.forEach(pair=>{
+        const splitIndex = pair.lastIndexOf(':');
+        const label = pair.slice(0, splitIndex).trim();
+        const url = pair.slice(splitIndex + 1).trim();
+        if(label && url){
+          const a = document.createElement('a');
+          a.textContent = label;
+          a.href = url;
+          a.target = '_blank';
+          inspLinks.appendChild(a);
+        }
+      });
+
+      // hash
+      if(cell.dataset.fase && cell.dataset.rij){
+        const h = '#fase=' + encodeURIComponent(cell.dataset.fase) + '&rij=' + encodeURIComponent(cell.dataset.rij);
+        if(location.hash !== h) history.replaceState(null, '', h);
+      }
+
+      // uitlijnen i.p.v. scrollen
+      alignInspectorToCell(cell);
+    }
+
+    grid.addEventListener('click', e=>{
+      const cell = e.target.closest('.cell[data-title]');
+      if(!cell) return;
+      openCell(cell);
+    });
+
+    const heads = Array.from(grid.querySelectorAll('.colhead')).slice(1);
+    heads.forEach((h, idx)=>{
+      h.style.cursor = 'pointer';
+      h.title = 'Highlight deze fase';
+      h.addEventListener('click', ()=>{
+        const isOn = h.classList.contains('is-focus');
+        clearColumnFocus();
+        if(!isOn){
+          h.classList.add('is-focus');
+          bpwrap.classList.add('col-dim');
+          const colIndex = idx + 1;
+          getCellsInCol(colIndex).forEach(c=>c.setAttribute('data-col','focus'));
+        }
+      });
+    });
+
+    function getCellsInCol(colIndex){
+      const items = Array.from(grid.children);
+      const out = [];
+      const colsCount = 6;
+      for(let i=0;i<items.length;i++){
+        const pos = i % colsCount;
+        if(pos === colIndex) out.push(items[i]);
+      }
+      return out.filter(el=>el.classList.contains('cell') || el.classList.contains('colhead') || el.classList.contains('rowhead'));
+    }
+
+    function tryOpenFromHash(){
+      const hash = new URLSearchParams(location.hash.replace('#',''));
+      const fase = hash.get('fase');
+      const rij = hash.get('rij');
+      if(!fase || !rij) return;
+      const selector = `.cell[data-fase="${decodeURIComponent(fase)}"][data-rij="${decodeURIComponent(rij)}"]`;
+      const cell = grid.querySelector(selector);
+      if(cell) openCell(cell);
+    }
+    window.addEventListener('hashchange', tryOpenFromHash);
+    tryOpenFromHash();
+
+    if(legendToggleBtn){
+      legendToggleBtn.addEventListener('click', ()=>{
+        const isHidden = legendEl.style.display === 'none' || legendEl.style.display === '';
+        legendEl.style.display = isHidden ? 'flex' : 'none';
+        legendToggleBtn.textContent = isHidden ? 'Verberg icoonlegenda' : 'Toon icoonlegenda';
+      });
+    }
+
+    closeInspBtn.addEventListener('click', closeInspector);
+    resetBtn.addEventListener('click', ()=>{
+      closeInspector();
+      clearColumnFocus();
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        closeInspector();
+      }
+    });
+
+    // Inject iconen + legenda
+    injectTouchpointIcons();
+    renderIconLegend();
+
+    // Blijft netjes uitgelijnd bij resize
+    window.addEventListener('resize', () => {
+      const active = document.querySelector('.cell.active');
+      if (active && insp.classList.contains('show')) alignInspectorToCell(active);
+    });
+
+    // Exports (ongewijzigd)
+    document.getElementById('svgBtn').addEventListener('click', () => {
+      const node = document.querySelector('.shell');
+      const styles = Array.from(document.querySelectorAll('style')).map(s=>s.innerHTML).join('\n');
+      const width = Math.ceil(node.scrollWidth);
+      const height = Math.ceil(node.scrollHeight);
+
+      const wrapper =
+        `<div xmlns="http://www.w3.org/1999/xhtml" style="margin:0;padding:0;background:#fff">
+           <style>${styles}</style>
+           ${node.outerHTML}
+         </div>`;
+
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+           <foreignObject width="100%" height="100%">${wrapper}</foreignObject>
+         </svg>`;
+
+      const blob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'service-blueprint-nieuwe-situatie.svg';
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    });
+
+    document.getElementById('pngBtn').addEventListener('click', async () => {
+      try {
+        if (typeof html2canvas === 'undefined') {
+          alert('html2canvas kon niet worden geladen. Open dit bestand via een lokale server, bijvoorbeeld VS Code Live Server.');
+          return;
+        }
+        const node = document.querySelector('.shell');
+        const prev = node.getAttribute('style') || '';
+        const was = insp.classList.contains('show');
+        if(was) insp.classList.remove('show');
+        node.setAttribute('style', prev + ';box-shadow:none;');
+
+        const canvas = await html2canvas(node, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true,
+          removeContainer: true,
+          logging: false,
+          windowWidth: node.scrollWidth,
+          windowHeight: node.scrollHeight
+        });
+
+        node.setAttribute('style', prev);
+        if(was) insp.classList.add('show');
+
+        canvas.toBlob(function(pngBlob){
+          if(!pngBlob){
+            alert('Kon geen PNG maken. Probeer in Chrome of Edge via een lokale server.');
+            return;
+          }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(pngBlob);
+          a.download = 'service-blueprint-nieuwe-situatie.png';
+          document.body.appendChild(a);
+          a.click();
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 'image/png');
+      } catch(e){
+        console.error(e);
+        alert('PNG export mislukte. Gebruik anders de SVG-download of Print naar PDF.');
+      }
+    });
+  </script>
+</body>
+</html>
